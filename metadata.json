@@ -1,0 +1,8 @@
+{
+  "name": "Remix AgriGo",
+  "description": "Agricultural commodity exchange, real-time arbitrage discovery, live haulage tracking, and escrow settlement platform for Nigerian wholesale agro-trade.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
