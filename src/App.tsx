@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TabType, SubViewType, TradeLot, HaulageShipment } from './types';
 import { TRADE_LOTS, ACTIVE_SHIPMENTS } from './data/mockData';
 import { Header } from './components/Header';
@@ -23,6 +23,7 @@ import { WaybillSealModal } from './components/Modals/WaybillSealModal';
 import { HaulageBookingModal } from './components/Modals/HaulageBookingModal';
 import { AddFundsModal } from './components/Modals/AddFundsModal';
 import { ListProduceModal } from './components/Modals/ListProduceModal';
+import { DemoControls } from './components/DemoControls';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
@@ -41,12 +42,21 @@ export default function App() {
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastIcon, setToastIcon] = useState<string>('check_circle');
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
 
   const showToast = (msg: string, icon = 'check_circle') => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     setToastMessage(msg);
     setToastIcon(icon);
-    setTimeout(() => {
+    toastTimeoutRef.current = setTimeout(() => {
       setToastMessage(null);
+      toastTimeoutRef.current = null;
     }, 3200);
   };
 
@@ -198,6 +208,8 @@ export default function App() {
 
       {/* Floating Toast Notification */}
       <Toast message={toastMessage} icon={toastIcon} />
+
+      <DemoControls />
 
       {/* MODALS */}
       <CounterOfferModal

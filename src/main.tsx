@@ -2,9 +2,12 @@ import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import {DemoDataProvider} from './demo/DemoDataProvider.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <DemoDataProvider>
+      <App />
+    </DemoDataProvider>
   </StrictMode>,
 );

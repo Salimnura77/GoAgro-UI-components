@@ -1,6 +1,8 @@
 import React from 'react';
-import { COMMODITY_PRICES, TRADE_LOTS } from '../data/mockData';
+import { TRADE_LOTS } from '../data/mockData';
 import { TradeLot } from '../types';
+import { useDemoData } from '../demo/DemoDataProvider';
+import { getFreshness, getFreshnessLabel } from '../demo/freshness';
 
 interface HomeViewProps {
   onOpenArbitrage: () => void;
@@ -21,6 +23,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenAddFunds,
   onShowToast,
 }) => {
+  const { prices, now } = useDemoData();
+  const benchmarkPrices = prices.filter((price) => price.sourceType === 'benchmark');
   return (
     <div className="flex flex-col w-full gap-5 pb-6">
       {/* TOP TRADER GREETING & STATUS BANNER */}
@@ -124,10 +128,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         {/* Horizontal Scrollable Matrix Strip */}
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scroll-smooth select-none no-scrollbar">
-          {COMMODITY_PRICES.map((item) => (
+          {benchmarkPrices.map((item) => {
+            const unavailable = ['outdated', 'unknown'].includes(getFreshness(item.sourceType, item.observedAt, now));
+            return (
             <div
               key={item.id}
-              onClick={() => onShowToast(`Realtime Spot Quote: ${item.name} ₦${item.pricePerKg.toLocaleString()}${item.unit}`)}
+              onClick={() => onShowToast(`${item.name}: ${getFreshnessLabel(item.sourceType, item.observedAt, now)}`)}
               className="min-w-[185px] flex-shrink-0 rounded-xl bg-[#181d1a] p-3 flex flex-col justify-between shadow-md border border-[#262b29] hover:border-[#4edea3]/40 cursor-pointer transition-colors"
             >
               <div className="flex items-start justify-between gap-1">
@@ -139,25 +145,23 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
                 <span
                   className={`px-1.5 py-0.5 rounded text-[10px] font-semibold whitespace-nowrap ${
-                    item.isPositive
-                      ? 'bg-[#262b29] text-[#75ff9e]'
-                      : 'bg-[#262b29] text-[#ffb4ab]'
+                    'bg-[#262b29] text-[#75ff9e]'
                   }`}
                 >
-                  {item.isPositive ? '▲' : '▼'} {item.changePct > 0 ? `+${item.changePct}%` : `${item.changePct}%`}
+                  DEMO
                 </span>
               </div>
               <div className="mt-2.5 flex items-baseline justify-between">
                 <div className="flex items-baseline gap-0.5">
                   <span className="font-['Plus_Jakarta_Sans'] text-[17px] font-bold text-[#dfe4e0]">
-                    ₦{item.pricePerKg.toLocaleString()}
+                    {unavailable ? '—' : `₦${item.value.toLocaleString()}`}
                   </span>
                   <span className="text-[10px] text-[#bacbb9]">{item.unit}</span>
                 </div>
-                <span className="text-[10px] text-[#4edea3]">{item.timeAgo}</span>
+                <span className="max-w-[92px] text-right text-[9px] leading-tight text-[#ffcf70]">{getFreshnessLabel(item.sourceType, item.observedAt, now)}</span>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       </div>
 

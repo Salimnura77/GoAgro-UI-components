@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface EscrowCheckoutModalProps {
   isOpen: boolean;
@@ -21,15 +21,26 @@ export const EscrowCheckoutModal: React.FC<EscrowCheckoutModalProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const successTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
+      if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
   const handleAuthorize = () => {
     setIsProcessing(true);
-    setTimeout(() => {
+    processingTimeoutRef.current = setTimeout(() => {
+      processingTimeoutRef.current = null;
       setIsProcessing(false);
       setIsSuccess(true);
-      setTimeout(() => {
+      successTimeoutRef.current = setTimeout(() => {
+        successTimeoutRef.current = null;
         setIsSuccess(false);
         onConfirm();
         onClose();
