@@ -51,9 +51,11 @@ Every dated observation also exposes `Observed at {YYYY-MM-DD HH:mm:ss WAT}` in 
 | Benchmark or hub / Fresh | Numeric price and unit, marked with age | `Fresh · {age} ago` |
 | Benchmark or hub / Stale | Last observed price and unit, visibly warning-marked; remove live animation | `Stale · {age} ago — Confirm before trading` |
 | Benchmark or hub / Outdated | Replace current price and price-derived delta with an em dash; preserve source and age | `Outdated · {age} ago — Price unavailable` |
-| GPS / Fresh | Sampled marker; sampled speed and GPS-derived ETA may be shown with age | `Fresh · {age} ago` |
-| GPS / Stale | Freeze and visually dim last-known marker; stop motion animation; replace current speed and GPS-derived ETA with an em dash | `Stale · {age} ago — Last known location` |
-| GPS / Outdated | Hide marker from the current tracking layer; replace GPS-derived position, speed and ETA claims with an em dash | `Outdated · {age} ago — Location unavailable; contact driver` |
+| GPS / Fresh | Sampled marker; sampled speed, GPS-derived ETA, progress bar/percentage (`progressPct`) and distance remaining (`distanceRemainingKm`) may be shown only when backed by the timestamped sample, with age | `Fresh · {age} ago` |
+| GPS / Stale | Freeze and visually dim last-known marker, progress bar/percentage and distance remaining at the last timestamped sample; stop motion and progress animation; replace current speed and GPS-derived ETA with an em dash | `Stale · {age} ago — Last known location` |
+| GPS / Outdated | Hide marker and progress bar from the current tracking layer; replace GPS-derived position, speed, ETA, progress percentage and distance remaining with an em dash | `Outdated · {age} ago — Location unavailable; contact driver` |
+
+For the progress bar/percentage and distance remaining, use these exact adjacent labels: fresh: `Fresh · {age} ago`; stale: `Stale · {age} ago — Last known progress and distance`; outdated: `Outdated · {age} ago — Progress and distance unavailable; contact driver`. These supplement the location labels where the metrics appear separately. Progress and distance must derive from the same timestamped GPS sample and route; neither may advance, count down or animate based on elapsed time, even within the fresh window. If a metric cannot be traced to that sample, suppress its bar/value and use `Age unknown — Progress and distance unavailable; contact driver`. A zero-percent or empty bar must not stand in for unavailable progress. This prevents a trader from arranging unloading or assuming a checkpoint has been passed on the basis of movement the app has not observed.
 
 At the fresh-to-stale boundary, apply the stale row immediately without waiting for another response. At the stale-to-outdated boundary, apply the replacement/hiding rule immediately. A valid fresh observation restores the fresh presentation, except that an open Route Engine comparison follows section 5.
 
@@ -66,7 +68,7 @@ These rules apply to dashboard cards, market tables, hub maps, commodity detail,
 A price or GPS sample with no source timestamp, an unparseable timestamp or a timestamp later than the trusted evaluation time has **unknown age**. Do not invent a time from receipt or parse a fixed “minutes ago” display string as observation evidence.
 
 - Price: replace the current number with an em dash and show `Age unknown — Price unavailable`.
-- GPS: hide the current marker and replace GPS-derived speed/ETA with an em dash; show `Age unknown — Location unavailable; contact driver`.
+- GPS: hide the current marker and progress bar; replace GPS-derived speed, ETA, progress percentage and distance remaining with an em dash. Show `Age unknown — Location unavailable; contact driver` for location and `Age unknown — Progress and distance unavailable; contact driver` beside progress/distance placeholders.
 - Unknown-age values have the same calculation and action restrictions as outdated values. Raw records may be inspected as history with `Observation time unavailable`.
 - Static fixtures must be labelled `Demo data — Not for trading` and cannot qualify for a fresh state by assigning the current time on page load.
 
@@ -108,7 +110,11 @@ Require seller confirmation of price, quantity and availability before purchase 
 | --- | --- |
 | Benchmark at 14:59 / 15:00 / 60:00 elapsed | Fresh / Stale / Outdated |
 | Hub at 29:59 / 30:00 / 120:00 elapsed | Fresh / Stale / Outdated |
-| GPS at 1:59 / 2:00 / 10:00 elapsed | Fresh / Stale / Outdated |
+| GPS at 1:59 / 2:00 / 10:00 elapsed | Fresh / Stale / Outdated; progress and distance follow the same boundaries |
+| GPS feed silent for 6 minutes | Marker, progress bar/percentage and distance freeze and dim; progress/distance label is `Stale · 6 min ago — Last known progress and distance`; speed and ETA are em dashes |
+| GPS sample reaches 10 minutes | Hide progress bar; progress percentage and distance are em dashes with `Outdated · 10 min ago — Progress and distance unavailable; contact driver` |
+| Progress/distance lack a supporting timestamped sample | No progress bar; numeric placeholders are em dashes with `Age unknown — Progress and distance unavailable; contact driver` |
+| Fresh GPS sample arrives after a gap | Restore only metrics backed by that sample, including progress/distance and their fresh labels; no elapsed-time extrapolation |
 | Fresh sell leg, outdated buy leg | No current spread or route ranking; comparison unavailable |
 | Timestamp absent or in the future | Unknown-age label; no current decision value |
 | Fresh arrival changes ranking while trader reads | Persistent held banner; unchanged order; booking disabled |
